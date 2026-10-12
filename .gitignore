@@ -1,0 +1,7 @@
+/load-balancer
+/build/
+/logs/
+/docs/html/
+/dist/
+*.o
+.DS_Store

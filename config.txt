@@ -1,0 +1,12 @@
+# Simulation defaults. Command-line options override servers, cycles, seed, and mode.
+min_task_cycles=10
+max_task_cycles=50
+arrival_probability=0.35
+blocked_source_probability=0.02
+processing_fraction=0.50
+scale_interval=100
+min_servers_per_pool=1
+max_servers_per_pool=100
+max_queue_per_pool=20000
+blocked_cidr=203.0.113.0/24
+blocked_cidr=198.51.100.0/24
