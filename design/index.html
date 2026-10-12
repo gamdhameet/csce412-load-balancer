@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Design proposal for the CSCE 412 load balancer simulation.">
+  <title>Load Balancer Design | CodeHarbor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="CodeHarbor home"><span class="brand-mark">CH</span><span>CodeHarbor</span></a>
+      <span class="course">CSCE 412 · Project 4</span>
+    </div>
+  </header>
+
+  <main id="top" class="wrap">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">Design proposal</p>
+      <h1 id="page-title">Load balancer simulation</h1>
+      <p class="lead">A clock-driven model of incoming web requests, two job types, a request queue, and a server pool that grows or shrinks with demand.</p>
+    </section>
+
+    <section aria-labelledby="flow-title">
+      <div class="section-heading"><span class="section-number">01</span><h2 id="flow-title">Request flow</h2></div>
+      <div class="flow" role="img" aria-label="Configuration and generated requests enter an IP filter. Allowed requests are routed by job type to processing or streaming load balancers. Each load balancer queues work, assigns idle web servers, and updates statistics. The clock controls new arrivals and scaling checks.">
+        <div class="flow-stage two-up">
+          <div class="node"><span class="node-label">Setup</span><strong>Configuration</strong><small>Server count, run length, timing, blocked IP ranges</small></div>
+          <div class="node"><span class="node-label">Input</span><strong>Request generator</strong><small>Source IP, destination IP, work time, P or S</small></div>
+        </div>
+        <div class="connector" aria-hidden="true">↓</div>
+        <div class="flow-stage"><div class="node accent"><span class="node-label">Admission</span><strong>IP filter</strong><small>Reject blocked source addresses before they reach a queue</small></div></div>
+        <div class="connector" aria-hidden="true">↓</div>
+        <div class="flow-stage"><div class="node"><span class="node-label">Routing</span><strong>Job-type switch</strong><small>Send processing and streaming work to separate balancers</small></div></div>
+        <div class="connector split-label" aria-hidden="true"><span>↙ P</span><span>S ↘</span></div>
+        <div class="flow-stage two-up">
+          <div class="node"><span class="node-label">Processing</span><strong>Load balancer</strong><small>FIFO queue → idle web servers → completed jobs</small></div>
+          <div class="node"><span class="node-label">Streaming</span><strong>Load balancer</strong><small>FIFO queue → idle web servers → completed jobs</small></div>
+        </div>
+        <div class="connector" aria-hidden="true">↓</div>
+        <div class="flow-stage"><div class="node summary"><span class="node-label">Each clock cycle</span><strong>Statistics and scaling</strong><small>Record arrivals, completions, rejections, queue depth, and server changes</small></div></div>
+      </div>
+      <p class="diagram-description">The configuration determines task lengths, arrival rate, scaling interval, and blocked address ranges. Generated requests first pass through the IP filter. The switch then sends each allowed request to the processing or streaming queue. Idle servers take the oldest waiting request from their own queue. Each clock tick advances active work; periodic checks add or remove one server in each pool as queue depth changes. The final report combines both pools and keeps their statistics separate.</p>
+    </section>
+
+    <section aria-labelledby="model-title">
+      <div class="section-heading"><span class="section-number">02</span><h2 id="model-title">Data model</h2></div>
+      <div class="model-grid">
+        <article><h3>Request</h3><p>One unit of work. Stores source and destination IP addresses, processing time in clock cycles, and the job type: P or S.</p></article>
+        <article><h3>WebServer</h3><p>Holds at most one active request. Tracks its remaining processing time and reports when it becomes idle.</p></article>
+        <article><h3>LoadBalancer</h3><p>Owns a FIFO request queue and a pool of web servers. Assigns waiting work, advances active work, and changes server count after a cooldown.</p></article>
+        <article><h3>Switch</h3><p>Routes admitted requests to the processing or streaming load balancer and keeps their statistics separate.</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="rules-title">
+      <div class="section-heading"><span class="section-number">03</span><h2 id="rules-title">Clock and capacity rules</h2></div>
+      <div class="rules">
+        <div><strong>Start</strong><p>Read the configuration and user inputs, create the initial servers, then fill the starting queue to 100 accepted requests per server.</p></div>
+        <div><strong>Advance</strong><p>On each tick, complete finished work, assign queued work to idle servers, and add new requests at randomized times.</p></div>
+        <div><strong>Scale</strong><p>After a configurable cooldown, remove one idle server when the queue is below 50 requests per server, or add one when it exceeds 80 per server. Keep at least one server per balancer.</p></div>
+        <div><strong>Report</strong><p>Quiet mode prints start and end summaries. Verbose mode also records arrivals, assignments, completions, firewall rejections, and scaling events.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="wrap">CodeHarbor · CSCE 412 · Load balancer design proposal</div></footer>
+</body>
+</html>
