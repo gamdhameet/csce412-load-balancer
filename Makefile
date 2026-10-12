@@ -28,7 +28,8 @@ check: $(TARGET)
 package:
 	mkdir -p dist
 	zip -q -FS -r dist/CodeHarbor_Project_4_Source.zip Makefile config.txt \
-		Doxyfile README.md include src docs/mainpage.md docs/codeharbor.css
+		Doxyfile README.md include src tests/check_summary.py \
+		docs/mainpage.md docs/codeharbor.css
 
 clean:
 	rm -rf build $(TARGET) docs/html
